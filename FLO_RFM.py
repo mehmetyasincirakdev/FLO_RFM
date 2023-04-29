@@ -59,3 +59,42 @@ rfm["recency"] = (analysis_date - dataframe["last_order_date"]).astype('timedelt
 rfm["frequency"] = dataframe["order_num_total"]
 rfm["monetary"] = dataframe["customer_value_total"]
 rfm.head()
+
+rfm["recency_score"] = pandas.qcut(rfm["recency"], 5, labels=[5, 4, 3, 2, 1])
+rfm["frequency_score"] = pandas.qcut(rfm["frequency"].rank(method="first"), 5, labels=[1, 2, 3, 4, 5])
+rfm["monetary_score"] = pandas.qcut(rfm["monetary"], 5, labels=[1, 2, 3, 4, 5])
+rfm.head()
+
+rfm["RF_SCORE"] = (rfm["recency_score"].astype(str) + rfm["frequency_score"].astype(str))
+rfm["RFM_SCORE"] = (
+        rfm["recency_score"].astype(str) + rfm["frequency_score"].astype(str) + rfm["monetary_score"].astype(str))
+
+seg_map = {
+    r'[1-2][1-2]': 'hibernating',
+    r'[1-2][3-4]': 'at_Risk',
+    r'[1-2]5': 'cant_loose',
+    r'3[1-2]': 'about_to_sleep',
+    r'33': 'need_attention',
+    r'[3-4][4-5]': 'loyal_customers',
+    r'41': 'promising',
+    r'51': 'new_customers',
+    r'[4-5][2-3]': 'potential_loyalists',
+    r'5[4-5]': 'champions'
+}
+
+rfm["segment"] = rfm["RF_SCORE"].replace(seg_map, regex=True)
+rfm.head()
+
+rfm[["segment", "recency", "frequency", "monetary"]].groupby("segment").agg(["mean", "count"])
+
+target_segments_customer_ids = rfm[rfm["segment"].isin(["champions", "loyal_customers"])]["customer_id"]
+customers_ids = dataframe[(dataframe["master_id"].isin(target_segments_customer_ids)) & (
+    dataframe["interested_in_categories_12"].str.contains("KADIN"))]["master_id"]
+customers_ids.to_csv("yeni_marka_hedef_musteri_id.csv", index=False)
+
+target_segments_customer_ids = rfm[rfm["segment"].isin(["cant_loose", "atrisk", "new_customers"])]["customer_id"]
+cust_ids = dataframe[(dataframe["master_id"].isin(target_segments_customer_ids)) & (
+            (dataframe["interested_in_categories_12"].str.contains("ERKEK")) | (
+        dataframe["interested_in_categories_12"].str.contains("COCUK")))]["master_id"]
+
+cust_ids.to_csv("indirim_hedef_müşteri_ids.csv", index=False)
