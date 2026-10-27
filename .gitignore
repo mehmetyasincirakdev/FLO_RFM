@@ -1,0 +1,16 @@
+.venv/
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+outputs/
+*.py[cod]
+
+# Local customer data and generated campaign audiences
+/Datasets/
+/indirim_hedef_müşteri_ids.csv
+/yeni_marka_hedef_musteri_id.csv
+
+# Local secrets
+.env
+.env.*
+!.env.example
