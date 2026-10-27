@@ -1,0 +1,107 @@
+Metadata-Version: 2.4
+Name: flo-rfm
+Version: 1.0.0
+Summary: RFM customer segmentation and campaign audience generation
+Requires-Python: >=3.10
+Description-Content-Type: text/markdown
+Requires-Dist: pandas<4.0,>=2.0
+Provides-Extra: dev
+Requires-Dist: ruff<1.0,>=0.11; extra == "dev"
+
+# FLO RFM Customer Segmentation
+
+Python project for calculating customer **Recency, Frequency, Monetary (RFM)**
+scores, assigning customer segments, and exporting campaign audiences.
+
+## Requirements
+
+- Python 3.10 or later
+- The customer dataset obtained from a source that authorizes your use of it
+
+## Setup
+
+From the repository root, create a virtual environment and install the project:
+
+```powershell
+py -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install -e ".[dev]"
+```
+
+Provide the dataset locally as `Datasets/flo_data_20k.csv`. The dataset and
+generated customer-level audience files are intentionally excluded from Git;
+they are not bundled with this repository. Obtain the data from an authorized
+source and do not commit customer data or campaign exports. The dataset must
+contain the columns used by the analysis, including `master_id`, order dates,
+order counts, customer values, and `interested_in_categories_12`.
+
+## Run
+
+From the repository root:
+
+```powershell
+flo-rfm
+```
+
+The original script entry point remains available:
+
+```powershell
+python FLO_RFM.py
+```
+
+Choose a different input, output folder, or RFM reference date with:
+
+```powershell
+flo-rfm --input path\to\customers.csv --output-dir outputs --analysis-date 2021-06-01
+```
+
+If no analysis date is provided, the day after the latest order in the dataset
+is used. This avoids negative recency values and keeps the reference date
+appropriate for the data being analyzed.
+
+## Reports
+
+The output directory contains:
+
+- `rfm_analysis.csv`: per-customer RFM metrics, scores, and segment
+- `rfm_segment_summary.csv`: customer count and average metrics by segment
+- `yeni_marka_hedef_musteri_id.csv`: champions and loyal customers interested
+  in the women's category
+- `indirim_hedef_müşteri_ids.csv`: at-risk, cannot-lose, or new customers
+  interested in men's or children's categories
+
+Recency, frequency, and monetary values are ranked into five groups; ties
+receive the same score. More recent activity receives a higher recency score.
+Input data is validated before analysis, and invalid or incomplete data raises
+an explicit error.
+
+## Project layout
+
+```text
+src/flo_rfm/       Analysis package (data, scoring, campaigns, CLI)
+tests/             Unit and pipeline tests
+Datasets/          Local-only source data (not tracked by Git)
+outputs/           Generated reports (not tracked by Git)
+FLO_RFM.py         Backwards-compatible script entry point
+```
+
+## Tests and lint
+
+```powershell
+python -m unittest discover -s tests -v
+ruff check .
+ruff format --check .
+```
+
+GitHub Actions runs the test suite on Python 3.10–3.13 and checks lint and
+formatting. The tests use small generated fixtures, so they do not need the
+private customer dataset.
+
+## Customer data and Git history
+
+`.gitignore` prevents local datasets, customer audience exports, credentials,
+and editor-specific settings from being added in future commits. Removing a
+file from the latest Git revision does **not** erase it from older commits.
+If customer data has already been pushed to a remote repository, coordinate a
+history cleanup with repository collaborators and restrict/rotate any exposed
+access as appropriate before treating the data as removed.

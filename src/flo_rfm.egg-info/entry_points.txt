@@ -1,0 +1,2 @@
+[console_scripts]
+flo-rfm = flo_rfm.cli:main
