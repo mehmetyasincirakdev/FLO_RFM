@@ -2,8 +2,13 @@
 __pycache__/
 .pytest_cache/
 .ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
 outputs/
 *.py[cod]
+.idea/
+.vscode/
 
 # Local customer data and generated campaign audiences
 /Datasets/
