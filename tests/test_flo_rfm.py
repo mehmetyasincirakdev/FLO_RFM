@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from FLO_RFM import (
+from flo_rfm import (
     build_campaign_targets,
     create_rfm,
     prepare_data,
@@ -57,7 +57,9 @@ class PrepareDataTests(unittest.TestCase):
         self.assertNotIn("order_num_total", customers.columns)
         self.assertEqual(prepared.loc[0, "order_num_total"], 1)
         self.assertEqual(prepared.loc[0, "customer_value_total"], 10)
-        self.assertTrue(pd.api.types.is_datetime64_any_dtype(prepared["last_order_date"]))
+        self.assertTrue(
+            pd.api.types.is_datetime64_any_dtype(prepared["last_order_date"])
+        )
 
     def test_rejects_missing_required_columns(self) -> None:
         with self.assertRaisesRegex(ValueError, "Missing required columns"):
@@ -96,20 +98,24 @@ class RfmTests(unittest.TestCase):
         first_customer_score = str(rfm.loc[0, "RF_SCORE"])[0]
         last_customer_score = str(rfm.loc[len(rfm) - 1, "RF_SCORE"])[0]
         self.assertLess(first_customer_score, last_customer_score)
-        self.assertTrue(rfm["segment"].isin(
-            {
-                "hibernating",
-                "at_Risk",
-                "cant_loose",
-                "about_to_sleep",
-                "need_attention",
-                "loyal_customers",
-                "promising",
-                "new_customers",
-                "potential_loyalists",
-                "champions",
-            }
-        ).all())
+        self.assertTrue(
+            rfm["segment"]
+            .isin(
+                {
+                    "hibernating",
+                    "at_Risk",
+                    "cant_loose",
+                    "about_to_sleep",
+                    "need_attention",
+                    "loyal_customers",
+                    "promising",
+                    "new_customers",
+                    "potential_loyalists",
+                    "champions",
+                }
+            )
+            .all()
+        )
         pd.testing.assert_frame_equal(customers, original)
 
     def test_rejects_analysis_date_before_latest_order(self) -> None:
@@ -167,12 +173,8 @@ class CampaignTests(unittest.TestCase):
             self.assertEqual(len(rfm), 10)
             self.assertTrue((output_dir / "rfm_analysis.csv").is_file())
             self.assertTrue((output_dir / "rfm_segment_summary.csv").is_file())
-            self.assertTrue(
-                (output_dir / "yeni_marka_hedef_musteri_id.csv").is_file()
-            )
-            self.assertTrue(
-                (output_dir / "indirim_hedef_müşteri_ids.csv").is_file()
-            )
+            self.assertTrue((output_dir / "yeni_marka_hedef_musteri_id.csv").is_file())
+            self.assertTrue((output_dir / "indirim_hedef_müşteri_ids.csv").is_file())
             self.assertEqual(
                 pd.read_csv(output_dir / "rfm_analysis.csv").shape[0],
                 10,
